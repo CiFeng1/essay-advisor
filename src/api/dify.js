@@ -1,21 +1,16 @@
-const API_BASE_URL = 'https://api.dify.ai/v1'
-const API_KEY = 'app-K2OG4vwsG7rE6O2lG33eGwMU'
+// 通过 Vite 代理转发，避免 CORS 问题
+// /api/workflows/run -> https://api.dify.ai/v1/workflows/run
+const API_BASE_URL = '/api'
 
 /**
  * 发送 Workflow 消息（流式模式）
- * @param {string} query - 用户问题（作为 keyword 输入）
- * @param {string} user - 用户标识
- * @param {Function} onMessage - 每收到一段内容时的回调 (chunk) => {}
- * @param {Function} onComplete - 完成时的回调 (fullAnswer) => {}
- * @param {Function} onError - 出错时的回调 (error) => {}
- * @param {Function} onNodeEvent - 节点事件回调 (eventType, data) => {}
  */
 export async function sendWorkflowMessage(query, user, onMessage, onComplete, onError, onNodeEvent) {
   try {
     const response = await fetch(`${API_BASE_URL}/workflows/run`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${API_KEY}`,
+        'Authorization': `Bearer app-K2OG4vwsG7rE6O2lG33eGwMU`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -65,7 +60,6 @@ export async function sendWorkflowMessage(query, user, onMessage, onComplete, on
                 break
 
               case 'text_chunk':
-                // 流式文本块
                 if (data.data?.text) {
                   fullAnswer += data.data.text
                   onMessage(data.data.text)
@@ -73,7 +67,6 @@ export async function sendWorkflowMessage(query, user, onMessage, onComplete, on
                 break
 
               case 'workflow_finished':
-                // 工作流完成，获取最终输出（可能是 out 或 text 字段）
                 const outputs = data.data?.outputs || {}
                 const finalText = outputs.out || outputs.text || fullAnswer
                 if (finalText && finalText !== fullAnswer) {
@@ -93,7 +86,6 @@ export async function sendWorkflowMessage(query, user, onMessage, onComplete, on
       }
     }
 
-    // 流结束但没触发 workflow_finished
     if (fullAnswer) {
       onComplete(fullAnswer)
     }
