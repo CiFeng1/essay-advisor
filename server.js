@@ -24,7 +24,7 @@ app.use(
 app.use(express.static(path.join(__dirname, 'dist')))
 
 // SPA 回退：所有非 API 路由返回 index.html
-app.get('*', (req, res) => {
+app.get('/{*splat}', (req, res) => {
   res.sendFile(path.join(__dirname, 'dist', 'index.html'))
 })
 
